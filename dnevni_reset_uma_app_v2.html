@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dnevni Reset Uma</title>
+<style>
+  :root{
+    --bg:#f4f7f6; --card:#ffffff; --text:#1f1f1f; --muted:#5c6b66;
+    --accent:#2f6f5e; --accent2:#25584a; --shadow:rgba(0,0,0,.10);
+    --pill:#e9f1ef; --danger:#8a3b3b;
+  }
+  body.dark{
+    --bg:#0f1413; --card:#151c1a; --text:#e7ecea; --muted:#aab6b1;
+    --accent:#57b49d; --accent2:#3e9b85; --shadow:rgba(0,0,0,.35);
+    --pill:#1e2a27; --danger:#e08b8b;
+  }
+  *{box-sizing:border-box}
+  body{
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    margin:0; padding:18px;
+    background:var(--bg); color:var(--text);
+    text-align:center;
+  }
+  h1{margin:8px 0 2px; color:var(--accent); font-size:24px}
+  .sub{margin:0 0 14px; color:var(--muted); font-size:14px}
+  .wrap{max-width:520px; margin:0 auto}
+  .topbar{
+    display:flex; gap:10px; align-items:center; justify-content:space-between;
+    margin:10px 0 12px;
+  }
+  .chip{
+    display:inline-flex; gap:8px; align-items:center;
+    background:var(--pill); padding:10px 12px; border-radius:999px;
+    font-size:13px; color:var(--muted);
+  }
+  .btn{
+    padding:12px 14px; border:none; border-radius:10px;
+    background:var(--accent); color:white; font-size:15px;
+    cursor:pointer; box-shadow:0 6px 18px var(--shadow);
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn.secondary{
+    background:transparent; color:var(--accent);
+    border:1px solid var(--accent);
+    box-shadow:none;
+  }
+  .btn.small{padding:9px 10px; font-size:13px; border-radius:9px}
+  .tabs{
+    display:flex; gap:8px; flex-wrap:wrap; justify-content:center;
+    margin:10px 0 14px;
+  }
+  .tab{
+    padding:9px 10px; border-radius:999px;
+    border:1px solid transparent; background:var(--pill);
+    color:var(--muted); cursor:pointer; font-size:13px;
+  }
+  .tab.active{background:var(--accent); color:white}
+  .card{
+    background:var(--card); border-radius:14px; padding:16px;
+    margin:12px auto; box-shadow:0 8px 24px var(--shadow);
+    text-align:left;
+  }
+  .card h2{margin:0 0 8px; font-size:16px; text-align:left}
+  .card p{margin:6px 0; color:var(--muted); line-height:1.35}
+  .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+  .center{text-align:center}
+  .timer{
+    font-size:34px; font-weight:800; letter-spacing:.5px;
+    margin-top:10px; text-align:center;
+  }
+  .hint{font-size:13px; color:var(--muted); text-align:center; margin-top:6px}
+  .quote{
+    text-align:center; font-weight:700; color:var(--text);
+    padding:10px 12px; border-radius:12px; background:var(--pill);
+    margin-top:10px;
+  }
+  .check{
+    display:flex; gap:10px; align-items:flex-start; padding:10px 8px;
+    border-radius:12px; background:var(--pill); margin:8px 0;
+  }
+  input[type="checkbox"]{transform:scale(1.2); margin-top:3px}
+  .hr{height:1px; background:rgba(127,127,127,.18); margin:12px 0}
+  .kpi{
+    display:grid; grid-template-columns:1fr 1fr; gap:10px;
+  }
+  .kpi .box{
+    background:var(--pill); border-radius:14px; padding:12px; text-align:center;
+  }
+  .kpi .num{font-size:22px; font-weight:800; color:var(--accent)}
+  .kpi .lab{font-size:12px; color:var(--muted)}
+  .tiny{font-size:12px; color:var(--muted)}
+  .danger{color:var(--danger); font-weight:700}
+  .list{margin:8px 0 0; padding-left:18px; color:var(--muted)}
+  .list li{margin:6px 0}
+  .footer{
+    margin:14px 0 6px; font-size:13px; color:var(--muted);
+    text-align:center;
+  }
+  .hidden{display:none}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>🌿 Dnevni Reset Uma</h1>
+    <p class="sub">Offline mini aplikacija za mirnejši dan</p>
+
+    <div class="topbar">
+      <div class="chip" id="todayChip">Danes: —</div>
+      <div class="row">
+        <button class="btn small secondary" id="darkToggle">🌙 Nočni način</button>
+        <button class="btn small secondary" id="resetData">🔁 Reset</button>
+      </div>
+    </div>
+
+    <div class="kpi">
+      <div class="box">
+        <div class="num" id="countResets">0</div>
+        <div class="lab">Resetov danes</div>
+      </div>
+      <div class="box">
+        <div class="num" id="countStreak">0</div>
+        <div class="lab">Zaporedni dnevi</div>
+      </div>
+    </div>
+
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-tab="quick">⚡ Hitro</button>
+      <button class="tab" data-tab="breath">🫁 Dihanje</button>
+      <button class="tab" data-tab="evening">🌙 Večer</button>
+      <button class="tab" data-tab="plan">📅 7 dni</button>
+      <button class="tab" data-tab="tips">🧠 Nasveti</button>
+    </div>
+
+    <!-- QUICK -->
+    <div id="tab-quick" class="card">
+      <h2>⚡ Hitri mir (30–60 s)</h2>
+      <p>Ko pride nemir ali skrb: naredi mini reset brez razmišljanja.</p>
+      <div class="row">
+        <button class="btn" onclick="startQuick(30)">30 s</button>
+        <button class="btn secondary" onclick="startQuick(60)">60 s</button>
+        <button class="btn secondary" onclick="stopTimers()">Ustavi</button>
+      </div>
+      <div id="quickTimer" class="timer"></div>
+      <div id="quickHint" class="hint"></div>
+      <div class="quote">👉 “To je samo misel.” • “Moje telo je samo aktivirano.”</div>
+      <div class="hr"></div>
+      <p class="tiny"><span class="danger">Opomba:</span> cilj ni popoln mir. Cilj je, da telo dobi signal varnosti.</p>
+    </div>
+
+    <!-- BREATH -->
+    <div id="tab-breath" class="card hidden">
+      <h2>🫁 Vodeno dihanje (4 / 7)</h2>
+      <p>4 sekunde vdih skozi nos, 7 sekund počasen izdih. To umirja živčni sistem.</p>
+      <div class="row">
+        <button class="btn" onclick="startBreath(60)">1 minuta</button>
+        <button class="btn secondary" onclick="startBreath(120)">2 minuti</button>
+        <button class="btn secondary" onclick="stopTimers()">Ustavi</button>
+      </div>
+      <div id="breathTimer" class="timer"></div>
+      <div id="breathHint" class="hint"></div>
+      <div class="hr"></div>
+      <div class="check">
+        <input type="checkbox" id="cbBreath" />
+        <div>
+          <div><b>Opravljeno danes</b></div>
+          <div class="tiny">To šteje kot “reset” in gradi rutino.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EVENING -->
+    <div id="tab-evening" class="card hidden">
+      <h2>🌙 Večerni zaključek (2 minuti)</h2>
+      <p>To zmanjša nočni “security scan” in olajša spanec.</p>
+
+      <div class="check">
+        <input type="checkbox" id="cbDone" />
+        <div>
+          <div><b>1 stvar, ki si jo danes naredil</b></div>
+          <div class="tiny">Tudi majhna stvar šteje.</div>
+        </div>
+      </div>
+
+      <div class="check">
+        <input type="checkbox" id="cbTomorrow" />
+        <div>
+          <div><b>1 stvar za jutri</b></div>
+          <div class="tiny">Samo ena. Ne seznam.</div>
+        </div>
+      </div>
+
+      <div class="quote">👉 “Za danes je dovolj.”</div>
+
+      <div class="hr"></div>
+      <div class="row">
+        <button class="btn secondary" onclick="startQuick(60)">1-min umiritev</button>
+        <button class="btn" onclick="markEveningDone()">Označi večer ✅</button>
+      </div>
+      <p class="tiny">Če se ponoči zbudiš: “Ni treba zdaj.” + en dolg izdih.</p>
+    </div>
+
+    <!-- PLAN -->
+    <div id="tab-plan" class="card hidden">
+      <h2>📅 7-dnevni mini plan (5 min/dan)</h2>
+      <p>Vsak dan samo ena naloga. Manj je bolje.</p>
+      <ol class="list">
+        <li><b>Dan 1:</b> 2 min dolgi izdihi (4 vdih / 6–8 izdih)</li>
+        <li><b>Dan 2:</b> 1 min: “Ali je zdaj res kaj narobe?”</li>
+        <li><b>Dan 3:</b> Ob skrbi: “To je samo misel.”</li>
+        <li><b>Dan 4:</b> 3× mikro reset (ramena + izdih)</li>
+        <li><b>Dan 5:</b> 1× “dovolj dobro” (pusti pri 80%)</li>
+        <li><b>Dan 6:</b> Večerni zaključek (1 + 1 + stavek)</li>
+        <li><b>Dan 7:</b> Opazi nevtralen trenutek: “Tukaj je mir.”</li>
+      </ol>
+      <div class="hr"></div>
+      <p class="tiny">Namig: če kak dan izpustiš, samo nadaljuj. To ni test.</p>
+    </div>
+
+    <!-- TIPS -->
+    <div id="tab-tips" class="card hidden">
+      <h2>🧠 Najpogostejši “skriti” sprožilci</h2>
+      <ul class="list">
+        <li><b>Odganjanje misli</b> → misel se vrača. Raje: “To je samo misel.”</li>
+        <li><b>Mentalno checkanje</b> (“ali je vse OK?”) → ohranja alarm. Raje: “Ni treba preverjati zdaj.”</li>
+        <li><b>Nikoli zaključen dan</b> → nočni scan. Raje: večerni zaključek.</li>
+      </ul>
+      <div class="hr"></div>
+      <div class="quote" id="dailyTip">👉 —</div>
+      <div class="center" style="margin-top:10px">
+        <button class="btn secondary" onclick="newTip()">Nov nasvet</button>
+        <button class="btn" onclick="logReset()">Dodaj reset ✅</button>
+      </div>
+      <p class="tiny">“Dodaj reset” uporabi, če si naredil reset brez timerja.</p>
+    </div>
+
+    <div class="footer">Mir pride po malih trenutkih — ne naenkrat.</div>
+  </div>
+
+<script>
+  // ---------- State helpers ----------
+  const LS_KEY = "dru_state_v2";
+  const todayISO = () => new Date().toISOString().slice(0,10);
+
+  function loadState(){
+    try{
+      return JSON.parse(localStorage.getItem(LS_KEY)) || {};
+    }catch(e){ return {}; }
+  }
+  function saveState(s){ localStorage.setItem(LS_KEY, JSON.stringify(s)); }
+
+  function ensureDay(state){
+    const t = todayISO();
+    if(!state.currentDay || state.currentDay !== t){
+      // new day
+      if(state.currentDay){
+        // update streak
+        const prev = new Date(state.currentDay);
+        const cur = new Date(t);
+        const diffDays = Math.round((cur - prev) / (1000*60*60*24));
+        if(diffDays === 1){
+          state.streak = (state.streak || 0) + 1;
+        } else {
+          state.streak = 0;
+        }
+      } else {
+        state.streak = 0;
+      }
+      state.currentDay = t;
+      state.resetsToday = 0;
+      state.checks = { breath:false, eveningDone:false, done:false, tomorrow:false };
+    }
+    return state;
+  }
+
+  // ---------- UI init ----------
+  let state = ensureDay(loadState());
+  saveState(state);
+
+  const chip = document.getElementById("todayChip");
+  const countResets = document.getElementById("countResets");
+  const countStreak = document.getElementById("countStreak");
+
+  function refreshKPI(){
+    chip.textContent = "Danes: " + state.currentDay;
+    countResets.textContent = state.resetsToday || 0;
+    countStreak.textContent = state.streak || 0;
+    // checkboxes
+    document.getElementById("cbBreath").checked = !!(state.checks && state.checks.breath);
+    document.getElementById("cbDone").checked = !!(state.checks && state.checks.done);
+    document.getElementById("cbTomorrow").checked = !!(state.checks && state.checks.tomorrow);
+  }
+  refreshKPI();
+
+  // dark mode persisted
+  const darkToggle = document.getElementById("darkToggle");
+  if(state.dark){ document.body.classList.add("dark"); }
+  darkToggle.addEventListener("click", () => {
+    document.body.classList.toggle("dark");
+    state.dark = document.body.classList.contains("dark");
+    saveState(state);
+  });
+
+  document.getElementById("resetData").addEventListener("click", () => {
+    if(confirm("Resetiram štetje in kljukice? (tvoje opombe ne obstajajo, samo statistika)")){
+      localStorage.removeItem(LS_KEY);
+      location.reload();
+    }
+  });
+
+  // ---------- Tabs ----------
+  const tabs = document.querySelectorAll(".tab");
+  const tabIds = ["quick","breath","evening","plan","tips"];
+  tabs.forEach(t => t.addEventListener("click", () => {
+    tabs.forEach(x => x.classList.remove("active"));
+    t.classList.add("active");
+    const sel = t.dataset.tab;
+    tabIds.forEach(id => {
+      document.getElementById("tab-"+id).classList.toggle("hidden", id !== sel);
+    });
+  }));
+
+  // ---------- Timers ----------
+  let countdown = null;
+  let breathInterval = null;
+
+  function stopTimers(){
+    if(countdown) clearInterval(countdown);
+    if(breathInterval) clearInterval(breathInterval);
+    countdown = null; breathInterval = null;
+    document.getElementById("quickTimer").textContent = "";
+    document.getElementById("quickHint").textContent = "";
+    document.getElementById("breathTimer").textContent = "";
+    document.getElementById("breathHint").textContent = "";
+  }
+
+  function logReset(){
+    state = ensureDay(loadState());
+    state.resetsToday = (state.resetsToday || 0) + 1;
+    saveState(state);
+    refreshKPI();
+  }
+
+  function startQuick(seconds){
+    stopTimers();
+    let timeLeft = seconds;
+    const tEl = document.getElementById("quickTimer");
+    const hEl = document.getElementById("quickHint");
+
+    const steps = [
+      {at: seconds, text: "1) Dolg izdih"},
+      {at: Math.ceil(seconds*0.66), text: "2) Stopala na tleh"},
+      {at: Math.ceil(seconds*0.33), text: "3) Roka na prsih"},
+    ];
+
+    function hintFor(t){
+      for(const s of steps){
+        if(t === s.at) return s.text;
+      }
+      return "";
+    }
+
+    hEl.textContent = "Začni: dolg izdih.";
+    countdown = setInterval(() => {
+      tEl.textContent = timeLeft + " s";
+      const msg = hintFor(timeLeft);
+      if(msg) hEl.textContent = msg;
+      timeLeft--;
+      if(timeLeft < 0){
+        clearInterval(countdown);
+        countdown = null;
+        tEl.textContent = "✔ Končano";
+        hEl.textContent = "Dobro. Za trenutek samo normalno dihaj.";
+        logReset();
+      }
+    }, 1000);
+  }
+
+  function startBreath(totalSeconds){
+    stopTimers();
+    let remaining = totalSeconds;
+    const tEl = document.getElementById("breathTimer");
+    const hEl = document.getElementById("breathHint");
+
+    // Guided 4/7 cycle
+    let phase = "IN"; // IN or OUT
+    let phaseLeft = 4;
+
+    hEl.textContent = "Vdih (4)…";
+    tEl.textContent = remaining + " s";
+
+    breathInterval = setInterval(() => {
+      remaining--;
+      tEl.textContent = remaining + " s";
+
+      phaseLeft--;
+      if(phaseLeft <= 0){
+        if(phase === "IN"){
+          phase = "OUT";
+          phaseLeft = 7;
+          hEl.textContent = "Izdih (7)…";
+        } else {
+          phase = "IN";
+          phaseLeft = 4;
+          hEl.textContent = "Vdih (4)…";
+        }
+      }
+
+      if(remaining <= 0){
+        clearInterval(breathInterval);
+        breathInterval = null;
+        tEl.textContent = "✔ Končano";
+        hEl.textContent = "Odlično. Opazi ramena in čeljust.";
+        // mark checkbox breath as done + count reset
+        state = ensureDay(loadState());
+        state.checks = state.checks || {};
+        state.checks.breath = true;
+        saveState(state);
+        document.getElementById("cbBreath").checked = true;
+        logReset();
+      }
+    }, 1000);
+  }
+
+  // ---------- Checkboxes tracking ----------
+  document.getElementById("cbBreath").addEventListener("change", (e) => {
+    state = ensureDay(loadState());
+    state.checks = state.checks || {};
+    state.checks.breath = e.target.checked;
+    saveState(state);
+    refreshKPI();
+  });
+  document.getElementById("cbDone").addEventListener("change", (e) => {
+    state = ensureDay(loadState());
+    state.checks = state.checks || {};
+    state.checks.done = e.target.checked;
+    saveState(state);
+  });
+  document.getElementById("cbTomorrow").addEventListener("change", (e) => {
+    state = ensureDay(loadState());
+    state.checks = state.checks || {};
+    state.checks.tomorrow = e.target.checked;
+    saveState(state);
+  });
+
+  function markEveningDone(){
+    state = ensureDay(loadState());
+    state.checks = state.checks || {};
+    state.checks.eveningDone = true;
+    saveState(state);
+    alert("Večerni zaključek označen ✅");
+    logReset();
+  }
+
+  // ---------- Tips ----------
+  const tips = [
+    "Če pride skrb: »To je samo misel.« Potem pozornost nazaj v telo.",
+    "Notranji nemir ni dokaz problema. Je signal aktiviranega sistema.",
+    "Manj preverjanja v glavi = več miru. Reci: »Ni treba preverjati zdaj.«",
+    "Dolg izdih je najhitrejši gumb za umiritev. 3 ponovitve so dovolj.",
+    "Mir ni nagrada na koncu. Je stanje, iz katerega rešuješ stvari lažje."
+  ];
+  function newTip(){
+    const el = document.getElementById("dailyTip");
+    const idx = Math.floor(Math.random() * tips.length);
+    el.textContent = "👉 " + tips[idx];
+  }
+  newTip();
+
+  // refresh state if day rolled over while app open
+  setInterval(() => {
+    const s = ensureDay(loadState());
+    if(s.currentDay !== state.currentDay){
+      state = s; saveState(state); refreshKPI(); newTip();
+    }
+  }, 5000);
+</script>
+</body>
+</html>
